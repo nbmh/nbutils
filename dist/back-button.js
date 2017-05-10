@@ -4,8 +4,10 @@
 (function(angular) {
   'use strict';
   
-  angular.module('nb.backbutton', [])
-  .directive('nbBackButton', ['$rootScope', '$state', function($rootScope, $state) {
+  angular.module('nb.backbutton', [
+    'ui.router'
+  ])
+  .directive('nbBackButton', ['$rootScope', '$state', '$transitions', function($rootScope, $state, $transitions) {
     return {
       restrict: 'EA',
       transclude: true,
@@ -37,23 +39,23 @@
               $element.removeClass('ng-hide');
             }
           });
-          $rootScope.$on('$stateChangeSuccess', function() {
+          $transitions.onStart({}, function() {
+            state = null;
+            params = {};
+          });
+          $transitions.onSuccess({}, function() {
             setTimeout(function() {
               if (!state) {
                 $element.addClass('ng-hide');
               }
             }, 10);
           });
-          $rootScope.$on('$stateChangeStart', function() {
-            state = null;
-            params = {};
-          });
           
           setTimeout(function() {
-              if (!state || state == null) {
-                $element.addClass('ng-hide');
-              }
-            }, 10);
+            if (!state || state == null) {
+              $element.addClass('ng-hide');
+            }
+          }, 10);
         }
       }
     };

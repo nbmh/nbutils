@@ -86,8 +86,8 @@
     service;
     
     provider.$get = [
-      '$rootScope', '$localStorage', '$state', '$auth', 
-    function($rootScope, $storage, $state, $auth) {
+      '$rootScope', '$localStorage', '$state', '$auth', '$transitions', 
+    function($rootScope, $storage, $state, $auth, $transitions) {
       
       if (!$storage.aclRights) {
         $storage.aclRights = [];
@@ -174,15 +174,16 @@
         return $storage.aclGroups || [];
       };
       
-      $rootScope.$on('$stateChangeStart', function(e, state, params) {
-        if (params.acl) {
-          var acl = params.acl;
-          if (angular.isString(params.acl)) {
-            acl = params.acl.split('|');
+      $transitions.onStart({}, function($transition$) {
+        var state = $transition$.to();
+        if (state.params.acl) {
+          var acl = state.params.acl;
+          if (angular.isString(state.params.acl)) {
+            acl = state.params.acl.split('|');
           }
           if (acl.length) {
             if (!service.isAllowed(acl)) {
-              e.preventDefault();
+              $transitions.abort();
               var mainState = $auth.getStateMain();
               $state.go(mainState.name, mainState.params, mainState.options);
             }
