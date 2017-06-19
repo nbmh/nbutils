@@ -183,7 +183,7 @@
           }
           if (acl.length) {
             if (!service.isAllowed(acl)) {
-              $transitions.abort();
+              $transition$.abort();
               var mainState = $auth.getStateMain();
               $state.go(mainState.name, mainState.params, mainState.options);
             }

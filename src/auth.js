@@ -250,9 +250,6 @@
       service.data = function() {
         return getStorage().authData;
       };
-      service.isAllowed = function(roleId) {
-        return service.isAuthenticated() && getStorage().authData.id && getStorage().authData.id === roleId;
-      };
       service.isAuthenticated = function() {
         return getStorage().authAuthenticated === true;
       };
