@@ -183,7 +183,7 @@
           }
           if (acl.length) {
             if (!service.isAllowed(acl)) {
-              $transitions.abort();
+              $transition$.abort();
               var mainState = $auth.getStateMain();
               $state.go(mainState.name, mainState.params, mainState.options);
             }
@@ -448,9 +448,6 @@
       };
       service.data = function() {
         return getStorage().authData;
-      };
-      service.isAllowed = function(roleId) {
-        return service.isAuthenticated() && getStorage().authData.id && getStorage().authData.id === roleId;
       };
       service.isAuthenticated = function() {
         return getStorage().authAuthenticated === true;
