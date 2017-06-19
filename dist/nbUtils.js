@@ -408,6 +408,10 @@
         return service.data();
       };
       
+      service.clone = function() {
+        return angular.copy(service.data());
+      };
+      
       service.getStateAuth = function() {
         return states.auth;
       };
