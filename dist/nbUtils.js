@@ -1271,7 +1271,7 @@
                   result.then(function(response) {
                     parse.init(ctrl.mapRows(response.data), ctrl.mapTotal(response.data));
                   }, function(e) {
-                    console.log(e.message);
+                    console.log(e.getMessage());
                   }).finally(function() {
                     $scope.$loading = false;
                   });
@@ -1314,7 +1314,7 @@
               result.then(function(response) {
                 parse.more(ctrl.mapRows(response.data), ctrl.mapTotal(response.data));
               }, function(e) {
-                console.log(e.message);
+                console.log(e.getMessage());
               }).finally(function() {
                 $scope.$loading = false;
               });
@@ -1346,7 +1346,7 @@
               result.then(function(response) {
                 parse.page(page, ctrl.mapRows(response.data), ctrl.mapTotal(response.data));
               }, function(e) {
-                console.log(e.message);
+                console.log(e.getMessage());
               }).finally(function() {
                 $scope.$loading = false;
               });
