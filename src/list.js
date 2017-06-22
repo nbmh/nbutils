@@ -136,13 +136,15 @@
                 parse.init(result, result.length);
                 $scope.$loading = false;
               } else {
-                result.then(function(response) {
-                  parse.init(ctrl.mapRows(response.data), ctrl.mapTotal(response.data));
-                }, function(e) {
-                  console.log(e.message);
-                }).finally(function() {
-                  $scope.$loading = false;
-                });
+                if (result) {
+                  result.then(function(response) {
+                    parse.init(ctrl.mapRows(response.data), ctrl.mapTotal(response.data));
+                  }, function(e) {
+                    console.log(e.message);
+                  }).finally(function() {
+                    $scope.$loading = false;
+                  });
+                }
               }
             }
           },
