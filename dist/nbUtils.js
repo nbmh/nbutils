@@ -1272,6 +1272,7 @@
                     parse.init(ctrl.mapRows(response.data), ctrl.mapTotal(response.data));
                   }, function(e) {
                     console.log(e.status + ' - ' + e.statusText);
+                    parse.init([], 0);
                   }).finally(function() {
                     $scope.$loading = false;
                   });
@@ -1315,6 +1316,7 @@
                 parse.more(ctrl.mapRows(response.data), ctrl.mapTotal(response.data));
               }, function(e) {
                 console.log(e.status + ' - ' + e.statusText);
+                parse.more([], 0);
               }).finally(function() {
                 $scope.$loading = false;
               });
@@ -1347,6 +1349,7 @@
                 parse.page(page, ctrl.mapRows(response.data), ctrl.mapTotal(response.data));
               }, function(e) {
                 console.log(e.status + ' - ' + e.statusText);
+                parse.page(page, [], 0);
               }).finally(function() {
                 $scope.$loading = false;
               });
