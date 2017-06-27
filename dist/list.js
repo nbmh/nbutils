@@ -161,6 +161,9 @@
             $scope.offset = 0;
             $scope.$nbList.load();
           },
+          clear: function() {
+            parse.init([], 0);
+          },
           more: function() {
             $scope.$loading = true;
             
