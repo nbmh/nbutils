@@ -1360,7 +1360,9 @@
           }
         };
         
-        $scope.$nbList.load();
+        if ($scope.autostart === true) {
+          $scope.$nbList.load();
+        }
       };
   
   angular.module('nb.list', [])
@@ -1439,7 +1441,8 @@
         range: '@',
         locals: '=',
         paginationTemplate: '@',
-        $nbList: '=control'
+        $nbList: '=control',
+        autostart: '@'
       },
       controller: ['$scope', function($scope) {
         var ctrl = this;
@@ -1466,6 +1469,10 @@
         var defer = $q.defer(),
         template = ctrl.paginationTemplate(),
         args = arguments;
+        
+        if ($scope.autostart !== false) {
+          $scope.autostart = true;
+        }
         
         defer.promise.then(function(tpl) {
           if (tpl != '') {
