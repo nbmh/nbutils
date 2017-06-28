@@ -1210,7 +1210,7 @@
           init: function(rows, total) {
             var list = [];
             angular.forEach(rows, function(row) {
-              list.push(row);
+              list.push($scope.mapRow(row));
             });
             $scope.$rows = list;
             $scope.$page = 1;
@@ -1454,7 +1454,8 @@
         locals: '=',
         paginationTemplate: '@',
         $nbList: '=control',
-        autostart: '@'
+        autostart: '@',
+        mapRow: '=?mapRow'
       },
       controller: ['$scope', function($scope) {
         var ctrl = this;
@@ -1484,6 +1485,10 @@
         
         if ($scope.autostart !== false) {
           $scope.autostart = true;
+        }
+        
+        if (!$scope.mapRow) {
+          $scope.mapRow = angular.identity;
         }
         
         defer.promise.then(function(tpl) {
