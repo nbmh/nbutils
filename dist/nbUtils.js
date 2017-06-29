@@ -1270,7 +1270,7 @@
             } else if (angular.isFunction($scope.source)) {
               $scope.$loading = true;
               
-              var result = $scope.source({
+              var result = $scope.source.call($scope, {
                 offset: rows ? 0 : ctrl.offset(),
                 limit: rows || ctrl.limit()
               });
@@ -1315,7 +1315,7 @@
               offset = 0;
             }
             
-            var result = $scope.source({
+            var result = $scope.source.call($scope, {
               offset: offset,
               limit: ctrl.limit()
             });
@@ -1348,7 +1348,7 @@
             }
             
             var offset = page * ctrl.limit();
-            var result = $scope.source({
+            var result = $scope.source.call($scope, {
               offset: offset,
               limit: ctrl.limit()
             });
