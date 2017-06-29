@@ -1257,6 +1257,7 @@
         $scope.$limit = ctrl.limit();
         $scope.$loading = true;
         $scope.$init = false;
+        $scope.$firstLoad = false;
         $scope.$rows = [];
         $scope.$paginator = [];
         
@@ -1267,6 +1268,7 @@
             if (angular.isArray($scope.source)) {
               parse.init($scope.source, $scope.source.length);
               $scope.$loading = false;
+              $scope.$firstLoad = true;
             } else if (angular.isFunction($scope.source)) {
               $scope.$loading = true;
               
@@ -1278,6 +1280,7 @@
               if (angular.isArray(result)) {
                 parse.init(result, result.length);
                 $scope.$loading = false;
+                $scope.$firstLoad = true;
               } else {
                 if (result) {
                   result.then(function(response) {
@@ -1287,6 +1290,7 @@
                     parse.init([], 0);
                   }).finally(function() {
                     $scope.$loading = false;
+                    $scope.$firstLoad = true;
                   });
                 }
               }
@@ -1326,6 +1330,7 @@
             if (angular.isArray(result)) {
               parse.more(result, result.length);
               $scope.$loading = false;
+              $scope.$firstLoad = true;
             } else {
               result.then(function(response) {
                 parse.more(ctrl.mapRows(response.data), ctrl.mapTotal(response.data));
@@ -1334,6 +1339,7 @@
                 parse.more([], 0);
               }).finally(function() {
                 $scope.$loading = false;
+                $scope.$firstLoad = true;
               });
             }
           },
@@ -1359,6 +1365,7 @@
             if (angular.isArray(result)) {
               parse.page(page, result, result.length);
               $scope.$loading = false;
+              $scope.$firstLoad = true;
             } else {
               result.then(function(response) {
                 parse.page(page, ctrl.mapRows(response.data), ctrl.mapTotal(response.data));
@@ -1367,6 +1374,7 @@
                 parse.page(page, [], 0);
               }).finally(function() {
                 $scope.$loading = false;
+                $scope.$firstLoad = true;
               });
             }
           }
