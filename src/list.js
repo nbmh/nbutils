@@ -125,9 +125,11 @@
             if (angular.isArray($scope.source)) {
               parse.init($scope.source, $scope.source.length);
               $scope.$loading = false;
-              $scope.$firstLoad = true;
             } else if (angular.isFunction($scope.source)) {
               $scope.$loading = true;
+              if (!$scope.$init) {
+                $scope.$firstLoad = true;
+              }
               
               var result = $scope.source.call($scope, {
                 offset: rows ? 0 : ctrl.offset(),
@@ -137,7 +139,7 @@
               if (angular.isArray(result)) {
                 parse.init(result, result.length);
                 $scope.$loading = false;
-                $scope.$firstLoad = true;
+                $scope.$firstLoad = false;
               } else {
                 if (result) {
                   result.then(function(response) {
@@ -147,7 +149,7 @@
                     parse.init([], 0);
                   }).finally(function() {
                     $scope.$loading = false;
-                    $scope.$firstLoad = true;
+                    $scope.$firstLoad = false;
                   });
                 }
               }
@@ -170,6 +172,9 @@
           },
           more: function() {
             $scope.$loading = true;
+            if (!$scope.$init) {
+              $scope.$firstLoad = true;
+            }
             
             var offset = ctrl.offset() + ctrl.limit();
             if ($scope.$page > $scope.$pageMin) {
@@ -187,7 +192,7 @@
             if (angular.isArray(result)) {
               parse.more(result, result.length);
               $scope.$loading = false;
-              $scope.$firstLoad = true;
+              $scope.$firstLoad = false;
             } else {
               result.then(function(response) {
                 parse.more(ctrl.mapRows(response.data), ctrl.mapTotal(response.data));
@@ -196,12 +201,15 @@
                 parse.more([], 0);
               }).finally(function() {
                 $scope.$loading = false;
-                $scope.$firstLoad = true;
+                $scope.$firstLoad = false;
               });
             }
           },
           page: function(index) {
             $scope.$loading = true;
+            if (!$scope.$init) {
+              $scope.$firstLoad = true;
+            }
             
             var page = index - 1;
             if (page < 0) {
@@ -222,7 +230,7 @@
             if (angular.isArray(result)) {
               parse.page(page, result, result.length);
               $scope.$loading = false;
-              $scope.$firstLoad = true;
+              $scope.$firstLoad = false;
             } else {
               result.then(function(response) {
                 parse.page(page, ctrl.mapRows(response.data), ctrl.mapTotal(response.data));
@@ -231,7 +239,7 @@
                 parse.page(page, [], 0);
               }).finally(function() {
                 $scope.$loading = false;
-                $scope.$firstLoad = true;
+                $scope.$firstLoad = false;
               });
             }
           }
