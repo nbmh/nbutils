@@ -1307,7 +1307,6 @@
           },
           reset: function() {
             $scope.offset = 0;
-            $scope.offset = 0;
             $scope.$nbList.load();
           },
           clear: function() {
@@ -1329,7 +1328,6 @@
               limit: ctrl.limit()
             });
             
-            $scope.offset = offset;
             $scope.offset = offset;
             
             if (angular.isArray(result)) {
@@ -1389,6 +1387,7 @@
         };
         
         if ($scope.autostart === true) {
+          console.log('autostart');
           $scope.$nbList.load();
         }
       };
