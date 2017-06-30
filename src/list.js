@@ -159,7 +159,7 @@
             if ($scope.$page > 1) {
               this.page($scope.$page);
             } else {
-              this.load($scope.$count);
+              this.load();
             }
           },
           reset: function() {
