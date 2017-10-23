@@ -19,11 +19,11 @@
   },
   "homepage": "https://github.com/nbmh/nbutils#readme",
   "dependencies": {
+    "@uirouter/angularjs": "^1.0.10",
     "angular": "^1.6.4",
-    "ngstorage": "^0.3.11",
-    "angular-ui-router": "^1.0.3",
+    "angular-material": "^1.1.4",
     "angular-translate": "^2.15.1",
-    "angular-material": "^1.1.4"
+    "ngstorage": "^0.3.11"
   },
   "devDependencies": {
     "grunt": "^1.0.1",

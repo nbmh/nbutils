@@ -1109,6 +1109,51 @@
       };
       return http;
     }];
+  }])
+  .provider('$fetchLaravel', [function() {
+    var provider = this,
+    hostUrl = '';
+    
+    provider.setUrl = function(value) {
+      hostUrl = value;
+      return provider;
+    };
+    
+    provider.$get = ['$fetchHost', function($http) {
+      var service = function(config) {
+        if (config && config.url && config.url != '') {
+          config.url = hostUrl + config.url;
+        }
+        return $http(config);
+      },
+      http = angular.copy($http, service);
+      http.get = function(url, config) {
+        return $http.get(hostUrl + url, config);
+      };
+      http.head = function(url, config) {
+        var data = {_method: 'HEAD' };
+        return $http.post(hostUrl + url, data, config);
+      };
+      http.post = function(url, data, config) {
+        return $http.post(hostUrl + url, data, config);
+      };
+      http.put = function(url, data, config) {
+        data['_method'] = 'PUT';
+        return $http.post(hostUrl + url, data, config);
+      };
+      http.delete = function(url, config) {
+        var data = {_method: 'DELETE' };
+        return $http.post(hostUrl + url, data, config);
+      };
+      http.jsonp = function(url, config) {
+        return $http.jsonp(hostUrl + url, config);
+      };
+      http.patch = function(url, data, config) {
+        data['_method'] = 'PATCH';
+        return $http.patch(hostUrl + url, data, config);
+      };
+      return http;
+    }];
   }]);
 })(angular);
 
