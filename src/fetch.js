@@ -143,7 +143,7 @@
       };
       http.patch = function(url, data, config) {
         data['_method'] = 'PATCH';
-        return $http.patch(hostUrl + url, data, config);
+        return $http.post(hostUrl + url, data, config);
       };
       return http;
     }];
