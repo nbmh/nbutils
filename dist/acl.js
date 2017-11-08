@@ -83,19 +83,21 @@
   }])
   .provider('$acl', [function() {
     var provider = this,
+    _groups = [],
+    _rights = [],
     service;
     
+    provider.setRights = function(value) {
+      _rights = value || [];
+    };
+      
+    provider.setGroups = function(value) {
+      _groups = value || [];
+    };
+    
     provider.$get = [
-      '$rootScope', '$localStorage', '$state', '$auth', '$transitions', 
-    function($rootScope, $storage, $state, $auth, $transitions) {
-      
-      if (!$storage.aclRights) {
-        $storage.aclRights = [];
-      }
-      
-      if (!$storage.aclGroups) {
-        $storage.aclGroups = [];
-      }
+      '$rootScope', '$state', '$auth', '$transitions', 
+    function($rootScope, $state, $auth, $transitions) {
       
       service = function(value) {
         if (value) {
@@ -160,18 +162,18 @@
       
       service.rights = function(value) {
         if (value && angular.isArray(value)) {
-          $storage.aclRights = value || [];
-          $rootScope.$emit('$acl.update.rights', $storage.aclRights);
+          _rights = value || [];
+          $rootScope.$emit('$acl.update.rights', _rights);
         }
-        return $storage.aclRights || [];
+        return _rights || [];
       };
       
       service.groups = function(value) {
         if (value && angular.isArray(value)) {
-          $storage.aclGroups = value || [];
-          $rootScope.$emit('$acl.update.groups', $storage.aclGroups);
+          _groups = value || [];
+          $rootScope.$emit('$acl.update.groups', _groups);
         }
-        return $storage.aclGroups || [];
+        return _groups || [];
       };
       
       $transitions.onStart({}, function($transition$) {

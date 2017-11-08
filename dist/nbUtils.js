@@ -83,19 +83,21 @@
   }])
   .provider('$acl', [function() {
     var provider = this,
+    _groups = [],
+    _rights = [],
     service;
     
+    provider.setRights = function(value) {
+      _rights = value || [];
+    };
+      
+    provider.setGroups = function(value) {
+      _groups = value || [];
+    };
+    
     provider.$get = [
-      '$rootScope', '$localStorage', '$state', '$auth', '$transitions', 
-    function($rootScope, $storage, $state, $auth, $transitions) {
-      
-      if (!$storage.aclRights) {
-        $storage.aclRights = [];
-      }
-      
-      if (!$storage.aclGroups) {
-        $storage.aclGroups = [];
-      }
+      '$rootScope', '$state', '$auth', '$transitions', 
+    function($rootScope, $state, $auth, $transitions) {
       
       service = function(value) {
         if (value) {
@@ -160,18 +162,18 @@
       
       service.rights = function(value) {
         if (value && angular.isArray(value)) {
-          $storage.aclRights = value || [];
-          $rootScope.$emit('$acl.update.rights', $storage.aclRights);
+          _rights = value || [];
+          $rootScope.$emit('$acl.update.rights', _rights);
         }
-        return $storage.aclRights || [];
+        return _rights || [];
       };
       
       service.groups = function(value) {
         if (value && angular.isArray(value)) {
-          $storage.aclGroups = value || [];
-          $rootScope.$emit('$acl.update.groups', $storage.aclGroups);
+          _groups = value || [];
+          $rootScope.$emit('$acl.update.groups', _groups);
         }
-        return $storage.aclGroups || [];
+        return _groups || [];
       };
       
       $transitions.onStart({}, function($transition$) {
@@ -208,6 +210,7 @@
   ])
   .provider('$auth', ['$httpProvider', function($httpProvider) {
     var provider = this,
+    _authData = null,
     expiration = 900,
     checkInterval = 10,
     authUrl = '',
@@ -237,6 +240,10 @@
     headerName = 'X-Auth-Token',
     rememberName = 'X-Auth-Remember',
     captured = false;
+    
+    provider.setData = function(data) {
+      _authData = data;
+    };
     
     provider.setCondition = function(callback) {
       condition = callback;
@@ -325,27 +332,27 @@
     }]);
     
     provider.$get = [
-      '$rootScope', '$rootElement', '$sessionStorage', '$localStorage', '$http', '$interval', '$q', '$state', '$transitions', 
-    function($rootScope, $rootElement, $ss, $sl, $http, $interval, $q, $state, $transitions) {
+      '$rootScope', '$rootElement', '$sessionStorage', '$localStorage', '$http', '$interval', '$q', '$state', '$transitions', '$config', 
+    function($rootScope, $rootElement, $ss, $sl, $http, $interval, $q, $state, $transitions, $config) {
       var callbacks = {
         loading: angular.noop,
         done: angular.noop
       },
       getStorage = function() {
-        return $sl.authRemember === true ? $sl : $ss;
+        return $sl[$config.auth.remember_name] === true ? $sl : $ss;
       },
       checkExpiration = function($transition$) {
-        if (service.isAuthenticated() && !$sl.authRemember) {
+        if (service.isAuthenticated() && !$sl[$config.auth.remember_name]) {
           var nowAction = new Date().getTime(),
-          timespan = Math.floor((nowAction - (getStorage().authLastAction || 0)) / 1000);
+          timespan = Math.floor((nowAction - (getStorage()[$config.auth.last_action_name] || 0)) / 1000);
           if (service.isAuthenticated() && timespan >= expiration) {
             if ($transition$) {
               $transition$.abort();
             }
             $rootScope.$emit('$auth.expired', {
-              lastAction: getStorage().authLastAction,
+              lastAction: getStorage()[$config.auth.last_action_name],
               timespan: timespan,
-              data: angular.copy(getStorage().authData)
+              data: angular.copy(_authData)
             });
             clear();
             return 0;
@@ -356,18 +363,18 @@
         return 0;
       },
       clickEvent = function() {
-        if (service.isAuthenticated() && !$sl.authRemember) {
-          getStorage().authLastAction = new Date().getTime();
+        if (service.isAuthenticated() && !$sl[$config.auth.remember_name]) {
+          getStorage()[$config.auth.last_action_name] = new Date().getTime();
         }
       },
       triggerExpiration = function() {
-        if (service.isAuthenticated() && !$sl.authRemember) {
+        if (service.isAuthenticated() && !$sl[$config.auth.remember_name]) {
           var nowAction = new Date().getTime(),
-          timespan = Math.floor((nowAction - (getStorage().authLastAction || 0)) / 1000);
+          timespan = Math.floor((nowAction - (getStorage()[$config.auth.last_action_name] || 0)) / 1000);
           $rootScope.$emit('$auth.expired', {
-            lastAction: getStorage().authLastAction,
+            lastAction: getStorage()[$config.auth.last_action_name],
             timespan: timespan,
-            data: angular.copy(getStorage().authData)
+            data: angular.copy(_authData)
           });
           clear();
         }
@@ -385,14 +392,21 @@
             });
           }
         }
+      },
+      setToken = function(value) {
+        getStorage()[$config.auth.header_name] = value;
+      },
+      clearToken = function() {
+        delete $sl[$config.auth.header_name];
+        delete $ss[$config.auth.header_name];
       };
       
-      if (!getStorage().authLastAction) {
-        getStorage().authLastAction = new Date().getTime();
+      if (!getStorage()[$config.auth.last_action_name]) {
+        getStorage()[$config.auth.last_action_name] = new Date().getTime();
       }
       
-      if (!$sl.authRemember) {
-        $sl.authRemember = false;
+      if (!$sl[$config.auth.remember_name]) {
+        $sl[$config.auth.remember_name] = false;
       }
       
       service = function(data) {
@@ -401,6 +415,16 @@
         }
         return service.data();
       };
+      
+      Object.defineProperty(service, 'authToken', {
+        set: function(value) {
+          throw 'It is not allowed to set auth token from service!';
+        },
+        get: function() {
+          return getStorage()[$config.auth.header_name];
+        },
+        enumerable: true
+      });
       
       service.clone = function() {
         return angular.copy(service.data());
@@ -418,7 +442,7 @@
         return states.excluded;
       };
       service.handleRequest = function(request) {
-        getStorage().authLastAction = new Date().getTime();
+        getStorage()[$config.auth.last_action_name] = new Date().getTime();
         return request;
       };
       service.handleResponseError = function(response, $transition$) {
@@ -433,18 +457,18 @@
         return response;
       };
       service.setRemember = function(value) {
-        $sl.authRemember = !!value;
-        $httpProvider.defaults.headers.common[rememberName] = $sl.authRemember;
+        $sl[$config.auth.remember_name] = !!value;
+        $httpProvider.defaults.headers.common[rememberName] = $sl[$config.auth.remember_name];
         return service;
       };
       service.getRemember = function() {
-        return $sl.authRemember;
+        return $sl[$config.auth.remember_name];
       };
       service.data = function() {
-        return getStorage().authData;
+        return _authData;
       };
       service.isAuthenticated = function() {
-        return getStorage().authAuthenticated === true;
+        return _authData != null;
       };
       service.loading = function(callback) {
         callbacks.loading = callback || angular.noop;
@@ -456,26 +480,25 @@
       };
       service.isExpired = function() {
         var nowAction = new Date().getTime(),
-        timespan = parseInt((nowAction - (getStorage().authLastAction || 0)) / 1000);
-        return service.isAuthenticated() && !$sl.authRemember && (!getStorage().authData || timespan >= expiration);
+        timespan = parseInt((nowAction - (getStorage()[$config.auth.last_action_name] || 0)) / 1000);
+        return service.isAuthenticated() && !$sl[$config.auth.remember_name] && (!_authData || timespan >= expiration);
       };
       service.update = function(data) {
         if (service.isAuthenticated()) {
-          getStorage().authData = data;
-          $rootScope.$emit('$auth.update', getStorage().authData);
+          _authData = data;
+          $rootScope.$emit('$auth.update', _authData);
         }
         return service;
       };
       service.quick = function(response) {
         var headers = response.headers();
         if (headers && headers[headerName] != undefined || headers[headerName.toLowerCase()] != undefined) {
-          getStorage().authToken = headers[headerName] || headers[headerName.toLowerCase()] || '';
-          $httpProvider.defaults.headers.common[headerName] = getStorage().authToken;
+          setToken(headers[headerName] || headers[headerName.toLowerCase()] || '');
+          $httpProvider.defaults.headers.common[headerName] = service.authToken;
         }
-        getStorage().authLastAction = new Date().getTime();
-        getStorage().authAuthenticated = true;
-        getStorage().authData = (mapSource || angular.identity)(response.data);
-        $rootScope.$emit('$auth.authenticate', getStorage().authData);
+        getStorage()[$config.auth.last_action_name] = new Date().getTime();
+        _authData = (mapSource || angular.identity)(response.data);
+        $rootScope.$emit('$auth.authenticate', _authData);
       };
       service.authenticate = function(credentials) {
         callbacks.loading();
@@ -500,14 +523,13 @@
           if (success === true) {
             var headers = response.headers();
             if (headers[headerName] != undefined || headers[headerName.toLowerCase()] != undefined) {
-              getStorage().authToken = headers[headerName] || headers[headerName.toLowerCase()] || '';
-              $httpProvider.defaults.headers.common[headerName] = getStorage().authToken;
+              setToken(headers[headerName] || headers[headerName.toLowerCase()] || '');
+              $httpProvider.defaults.headers.common[headerName] = service.authToken;
             }
-            getStorage().authLastAction = new Date().getTime();
-            getStorage().authAuthenticated = true;
-            getStorage().authData = (mapSource || angular.identity)(response.data);
+            getStorage()[$config.auth.last_action_name] = new Date().getTime();
+            _authData = (mapSource || angular.identity)(response.data);
             deferred.resolve(response.data || {});
-            $rootScope.$emit('$auth.authenticate', getStorage().authData);
+            $rootScope.$emit('$auth.authenticate', _authData);
           } else {
             deferred.reject(response.data || {});
           }
@@ -541,27 +563,26 @@
         }
       };
       
-      if (service.isAuthenticated() && getStorage().authToken) {
-        $httpProvider.defaults.headers.common[headerName] = getStorage().authToken;
+      if (service.isAuthenticated() && service.authToken) {
+        $httpProvider.defaults.headers.common[headerName] = service.authToken;
       }
-      $httpProvider.defaults.headers.common[rememberName] = $sl.authRemember;
+      $httpProvider.defaults.headers.common[rememberName] = $sl[$config.auth.remember_name];
       
       var clear = function() {
-        var authData = angular.copy(getStorage().authData);
+        var authData = angular.copy(_authData);
         
-        getStorage().authAuthenticated = false;
-        delete $sl.authRemember;
-        delete $sl.authData;
-        delete $ss.authData;
-        delete $sl.authLastAction;
-        delete $ss.authLastAction;
-        delete $sl.authToken;
-        delete $ss.authToken;
+        _authData = null;
+        
+        delete $sl[$config.auth.remember_name];
+        delete $sl[$config.auth.last_action_name];
+        delete $ss[$config.auth.last_action_name];
+        clearToken();
         delete $httpProvider.defaults.headers.common[headerName];
         delete $httpProvider.defaults.headers.common[rememberName];
         
         return authData;
-      }, checkStateAuth = function($transition$, state) {
+      }, 
+      checkStateAuth = function($transition$, state) {
         if (states.excluded.indexOf(state.name) == -1) {
           var isAuth = service.isAuthenticated();
           if (states.auth.name != '' && states.main.name != '' && state.name == states.auth.name && isAuth) {
@@ -583,7 +604,7 @@
           var state = $transition$.to();
           checkStateAuth($transition$, state);
           
-          getStorage().authLastAction = new Date().getTime();
+          getStorage()[$config.auth.last_action_name] = new Date().getTime();
           firstState = false;
           if (service.isExpired()) {
             $transition$.abort();
@@ -596,7 +617,7 @@
         }
         var nowAction = checkExpiration($transition$);
         if (nowAction > 0) {
-          getStorage().authLastAction = nowAction;
+          getStorage()[$config.auth.last_action_name] = nowAction;
         }
       });
       
